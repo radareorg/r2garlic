@@ -14,6 +14,14 @@ make
 
 ## Install
 
+### From r2pm (recommended)
+
+```bash
+r2pm -Uci r2garlic
+```
+
+### From source
+
 ```bash
 make user-install
 ```
