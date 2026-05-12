@@ -1,0 +1,3 @@
+[submodule "garlic"]
+	path = garlic
+	url = https://github.com/neocanable/garlic
