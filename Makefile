@@ -1,5 +1,4 @@
-GARLIC_DIR  = garlic
-GARLIC_SRC  = $(GARLIC_DIR)/src
+GARLIC_SRC  = garlic/src
 
 R2_CFLAGS   ?= $(shell r2 -H R2_CFLAGS)
 R2_LDFLAGS  ?= $(shell r2 -H R2_LDFLAGS)
@@ -40,12 +39,8 @@ CFLAGS += -Wno-incompatible-pointer-types -Wno-misleading-indentation -Wno-forma
 
 LDFLAGS = -shared -fPIC $(R2_LDFLAGS) -lpthread
 
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-EXT_SO = dylib
+ifeq ($(R2_LIBEXT),dylib)
 LDFLAGS += -dynamiclib -undefined dynamic_lookup
-else
-EXT_SO = so
 endif
 
 GARLIC_C_SRCS = $(filter-out $(GARLIC_SRC)/garlic.c, \
@@ -76,7 +71,7 @@ PLUGIN_SRC = src/r2garlic.c
 GARLIC_OBJS = $(GARLIC_C_SRCS:.c=.o)
 PLUGIN_OBJ  = $(PLUGIN_SRC:.c=.o)
 
-PLUGIN = core_r2garlic.$(EXT_SO)
+PLUGIN = core_r2garlic.$(R2_LIBEXT)
 
 .PHONY: all clean install user-install user-uninstall help
 
@@ -94,15 +89,29 @@ libgarlic.a: $(GARLIC_OBJS)
 $(PLUGIN_OBJ): $(PLUGIN_SRC) src/r2garlic.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+ifeq ($(R2_LIBEXT),dll)
+clean:
+	del /Q $(GARLIC_OBJS) $(PLUGIN_OBJ) libgarlic.a $(PLUGIN) 2>nul || exit 0
+else
 clean:
 	rm -f $(GARLIC_OBJS) $(PLUGIN_OBJ) libgarlic.a $(PLUGIN)
+endif
 
+ifeq ($(R2_LIBEXT),dll)
+user-install: $(PLUGIN)
+	if not exist "$(R2_PLUGINS)" mkdir "$(R2_PLUGINS)"
+	copy $(PLUGIN) "$(R2_PLUGINS)\\"
+
+user-uninstall:
+	if exist "$(R2_PLUGINS)\\core_r2garlic.$(R2_LIBEXT)" del "$(R2_PLUGINS)\\core_r2garlic.$(R2_LIBEXT)"
+else
 user-install: $(PLUGIN)
 	mkdir -p $(R2_PLUGINS)
 	cp -f $(PLUGIN) $(R2_PLUGINS)/
 
 user-uninstall:
-	rm -f $(R2_PLUGINS)/core_r2garlic.$(EXT_SO)
+	rm -f $(R2_PLUGINS)/core_r2garlic.$(R2_LIBEXT)
+endif
 
 help:
 	@echo "r2garlic - Garlic DEX/Dalvik decompiler plugin for radare2"
