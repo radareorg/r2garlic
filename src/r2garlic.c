@@ -263,14 +263,14 @@ static char *dexdump_to_string(jd_meta_dex *meta) {
 
 static void cmd_decompile_current(RCore *core, ut8 *file_buf, size_t file_size) {
 	if (!file_buf || file_size == 0) {
-		r_cons_println (core->cons, "[r2garlic] No file loaded.");
+		R_LOG_WARN ("r2garlic: no file loaded");
 		return;
 	}
 	mem_init_pool ();
 	jd_meta_dex *meta = parse_dex_from_buffer ((char *)file_buf, file_size);
 	if (!meta) {
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] Failed to parse DEX file.");
+		R_LOG_ERROR ("r2garlic: failed to parse DEX file");
 		return;
 	}
 	meta->source_dir = NULL;
@@ -278,7 +278,7 @@ static void cmd_decompile_current(RCore *core, ut8 *file_buf, size_t file_size) 
 	if (!dex) {
 		mem_pool_free (meta->pool);
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] Failed to init DEX context.");
+		R_LOG_ERROR ("r2garlic: failed to init DEX context");
 		return;
 	}
 	int found = -1;
@@ -292,7 +292,7 @@ static void cmd_decompile_current(RCore *core, ut8 *file_buf, size_t file_size) 
 	if (found == -1) {
 		mem_pool_free (meta->pool);
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] No decompilable class found at current seek.");
+		R_LOG_WARN ("r2garlic: no decompilable class found at current seek");
 		return;
 	}
 	dex_class_def *cf = &meta->class_defs[found];
@@ -305,7 +305,7 @@ static void cmd_decompile_current(RCore *core, ut8 *file_buf, size_t file_size) 
 		r_cons_newline (core->cons);
 		free (result);
 	} else {
-		r_cons_println (core->cons, "[r2garlic] Decompilation failed for this class.");
+		R_LOG_ERROR ("r2garlic: decompilation failed for this class");
 	}
 	mem_pool_free (meta->pool);
 	mem_free_pool ();
@@ -313,14 +313,14 @@ static void cmd_decompile_current(RCore *core, ut8 *file_buf, size_t file_size) 
 
 static void cmd_decompile_all(RCore *core, ut8 *file_buf, size_t file_size) {
 	if (!file_buf || file_size == 0) {
-		r_cons_println (core->cons, "[r2garlic] No file loaded.");
+		R_LOG_WARN ("r2garlic: no file loaded");
 		return;
 	}
 	mem_init_pool ();
 	jd_meta_dex *meta = parse_dex_from_buffer ((char *)file_buf, file_size);
 	if (!meta) {
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] Failed to parse DEX file.");
+		R_LOG_ERROR ("r2garlic: failed to parse DEX file");
 		return;
 	}
 	meta->source_dir = NULL;
@@ -328,7 +328,7 @@ static void cmd_decompile_all(RCore *core, ut8 *file_buf, size_t file_size) {
 	if (!dex) {
 		mem_pool_free (meta->pool);
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] Failed to init DEX context.");
+		R_LOG_ERROR ("r2garlic: failed to init DEX context");
 		return;
 	}
 	r_cons_println (core->cons, "[r2garlic] Decompiling all classes...");
@@ -354,14 +354,14 @@ static void cmd_decompile_all(RCore *core, ut8 *file_buf, size_t file_size) {
 
 static void cmd_dexdump(RCore *core, ut8 *file_buf, size_t file_size) {
 	if (!file_buf || file_size == 0) {
-		r_cons_println (core->cons, "[r2garlic] No file loaded.");
+		R_LOG_WARN ("r2garlic: no file loaded");
 		return;
 	}
 	mem_init_pool ();
 	jd_meta_dex *meta = parse_dex_from_buffer ((char *)file_buf, file_size);
 	if (!meta) {
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] Failed to parse DEX file.");
+		R_LOG_ERROR ("r2garlic: failed to parse DEX file");
 		return;
 	}
 	meta->source_dir = NULL;
@@ -376,14 +376,14 @@ static void cmd_dexdump(RCore *core, ut8 *file_buf, size_t file_size) {
 
 static void cmd_smali_class(RCore *core, ut8 *file_buf, size_t file_size) {
 	if (!file_buf || file_size == 0) {
-		r_cons_println (core->cons, "[r2garlic] No file loaded.");
+		R_LOG_WARN ("r2garlic: no file loaded");
 		return;
 	}
 	mem_init_pool ();
 	jd_meta_dex *meta = parse_dex_from_buffer ((char *)file_buf, file_size);
 	if (!meta) {
 		mem_free_pool ();
-		r_cons_println (core->cons, "[r2garlic] Failed to parse DEX file.");
+		R_LOG_ERROR ("r2garlic: failed to parse DEX file");
 		return;
 	}
 	meta->source_dir = NULL;
@@ -403,7 +403,7 @@ static void cmd_smali_class(RCore *core, ut8 *file_buf, size_t file_size) {
 			free (result);
 		}
 	} else {
-		r_cons_println (core->cons, "[r2garlic] No class found at current address.");
+		R_LOG_WARN ("r2garlic: no class found at current address");
 	}
 	mem_pool_free (meta->pool);
 	mem_free_pool ();
@@ -418,7 +418,7 @@ static bool r2garlic_call(RCorePluginSession *cps, const char *input) {
 		return false;
 	}
 	if (!is_dex_file (core)) {
-		r_cons_println (core->cons, "[r2garlic] Error: This plugin only works on DEX files (format=dex, arch=dalvik).");
+		R_LOG_ERROR ("r2garlic: this plugin only works on DEX files (format=dex, arch=dalvik)");
 		return true;
 	}
 	GarlicContext *ctx = (GarlicContext *)cps->data;
