@@ -66,7 +66,7 @@ GARLIC_C_SRCS = $(filter-out $(GARLIC_SRC)/garlic.c, \
 	$(wildcard $(GARLIC_SRC)/apk/*.c) \
 )
 
-PLUGIN_SRC = src/r2garlic.c
+PLUGIN_SRC = src/r2garlic.c src/memstream.c
 
 GARLIC_OBJS = $(GARLIC_C_SRCS:.c=.o)
 PLUGIN_OBJ  = $(PLUGIN_SRC:.c=.o)
@@ -86,8 +86,7 @@ libgarlic.a: $(GARLIC_OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(PLUGIN_OBJ): $(PLUGIN_SRC) src/r2garlic.h
-	$(CC) $(CFLAGS) -c $< -o $@
+$(PLUGIN_OBJ): src/r2garlic.h src/memstream.h
 
 ifeq ($(R2_LIBEXT),dll)
 clean:

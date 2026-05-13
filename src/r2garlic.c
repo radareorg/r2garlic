@@ -1,4 +1,5 @@
 #include "r2garlic.h"
+#include "memstream.h"
 
 #include <r_core.h>
 #include <r_config.h>
@@ -24,6 +25,42 @@
 #include "common/str_tools.h"
 
 extern jd_dex *dex_init(jd_meta_dex *meta, int thread_num);
+
+static void set_node_output_stream(jd_node *node, FILE *stream);
+
+static void set_source_file_output_stream(jsource_file *jf, FILE *stream) {
+    if (!jf) {
+        return;
+    }
+    jf->source = stream;
+    if (!jf->blocks) {
+        return;
+    }
+    for (size_t i = 0; i < jf->blocks->size; i++) {
+        set_node_output_stream(lget_obj(jf->blocks, i), stream);
+    }
+}
+
+static void set_node_output_stream(jd_node *node, FILE *stream) {
+    if (!node) {
+        return;
+    }
+    if ((node->type == JD_NODE_CLASS_ROOT ||
+         node->type == JD_NODE_PACKAGE_IMPORT ||
+         node->type == JD_NODE_CLASS ||
+         node->type == JD_NODE_FIELD) && node->data) {
+        jsource_file *jf = (jsource_file *)node->data;
+        if (jf->source != stream) {
+            set_source_file_output_stream(jf, stream);
+        }
+    }
+    if (!node->children) {
+        return;
+    }
+    for (size_t i = 0; i < node->children->size; i++) {
+        set_node_output_stream(lget_obj(node->children, i), stream);
+    }
+}
 
 static const char *help_msg[] = {
     "Usage: pd:G[cmd] [args]",
@@ -99,25 +136,23 @@ static ut8 *get_file_bytes(RCore *core, size_t *out_size) {
 }
 
 static char *decompile_class_to_string(jd_dex *dex, dex_class_def *cf) {
+    R2GarlicMemStream ms;
+    if (!mem_stream_open(&ms)) {
+        return NULL;
+    }
     jsource_file *jf = dex_class_inside(dex, cf, NULL);
     if (!jf) {
+        mem_stream_discard(&ms);
         return NULL;
     }
     if (jf->parent != NULL) {
+        mem_stream_discard(&ms);
         return NULL;
     }
-    char *buf = NULL;
-    size_t len = 0;
-    FILE *stream = open_memstream(&buf, &len);
-    if (!stream) {
-        return NULL;
-    }
-    jf->source = stream;
+    set_source_file_output_stream(jf, ms.stream);
     writter_for_class(jf, NULL);
-    fflush(stream);
-    fclose(stream);
-    jf->source = NULL;
-    return buf;
+    set_source_file_output_stream(jf, NULL);
+    return mem_stream_close(&ms);
 }
 
 static void find_class_name_from_type(jd_meta_dex *meta, u4 class_idx, char *out, size_t out_size) {
@@ -195,6 +230,24 @@ static int find_class_at_seek(jd_meta_dex *meta, ut64 seek_addr) {
         }
     }
     return found;
+}
+
+static char *smali_class_to_string(jd_meta_dex *meta, dex_class_def *cf) {
+    R2GarlicMemStream ms;
+    if (!mem_stream_open(&ms)) {
+        return NULL;
+    }
+    dex_class_def_to_smali(meta, cf, ms.stream);
+    return mem_stream_close(&ms);
+}
+
+static char *dexdump_to_string(jd_meta_dex *meta) {
+    R2GarlicMemStream ms;
+    if (!mem_stream_open(&ms)) {
+        return NULL;
+    }
+    dexdump_to_stream(meta, ms.stream);
+    return mem_stream_close(&ms);
 }
 
 static void cmd_decompile_current(RCore *core, ut8 *file_buf, size_t file_size) {
@@ -299,7 +352,11 @@ static void cmd_dexdump(RCore *core, ut8 *file_buf, size_t file_size) {
         return;
     }
     meta->source_dir = NULL;
-    dexdump(meta);
+    char *result = dexdump_to_string(meta);
+    if (result) {
+        r_cons_print(core->cons, result);
+        free(result);
+    }
     mem_pool_free(meta->pool);
     mem_free_pool();
 }
@@ -327,16 +384,10 @@ static void cmd_smali_class(RCore *core, ut8 *file_buf, size_t file_size) {
     }
     if (found >= 0) {
         dex_class_def *cf = &meta->class_defs[found];
-        FILE *stream = tmpfile();
-        if (stream) {
-            dex_class_def_to_smali(meta, cf, stream);
-            fflush(stream);
-            rewind(stream);
-            char line[4096];
-            while (fgets(line, sizeof(line), stream)) {
-                r_cons_print(core->cons, line);
-            }
-            fclose(stream);
+        char *result = smali_class_to_string(meta, cf);
+        if (result) {
+            r_cons_print(core->cons, result);
+            free(result);
         }
     } else {
         r_cons_println(core->cons, "[r2garlic] No class found at current address.");
