@@ -409,7 +409,7 @@ static void cmd_smali_class(RCore *core, ut8 *file_buf, size_t file_size) {
 	mem_free_pool ();
 }
 
-bool r2garlic_call(RCorePluginSession *cps, const char *input) {
+static bool r2garlic_call(RCorePluginSession *cps, const char *input) {
 	RCore *core = cps? cps->core: NULL;
 	if (!core || !input) {
 		return false;
@@ -459,7 +459,7 @@ bool r2garlic_call(RCorePluginSession *cps, const char *input) {
 	return true;
 }
 
-bool r2garlic_init(RCorePluginSession *cps) {
+static bool r2garlic_init(RCorePluginSession *cps) {
 	RCore *core = cps? cps->core: NULL;
 	if (!core) {
 		return false;
@@ -477,7 +477,7 @@ bool r2garlic_init(RCorePluginSession *cps) {
 	return true;
 }
 
-bool r2garlic_fini(RCorePluginSession *cps) {
+static bool r2garlic_fini(RCorePluginSession *cps) {
 	if (!cps) {
 		return false;
 	}
@@ -491,7 +491,7 @@ bool r2garlic_fini(RCorePluginSession *cps) {
 	return true;
 }
 
-RCorePlugin r_core_plugin_r2garlic = {
+static RCorePlugin r_core_plugin_r2garlic = {
 	.meta = {
 		.name = "r2garlic",
 		.desc = "Garlic DEX/Dalvik decompiler plugin",
@@ -504,17 +504,10 @@ RCorePlugin r_core_plugin_r2garlic = {
 	.fini = r2garlic_fini,
 };
 
-#ifndef CORELIB
-#ifdef _MSC_VER
-#define _R_API __declspec (dllexport)
-#else
-#define _R_API __attribute__((visibility ("default")))
-#endif
-_R_API RLibStruct radare_plugin = {
+R_API RLibStruct radare_plugin = {
 	.type = R_LIB_TYPE_CORE,
 	.data = &r_core_plugin_r2garlic,
 	.version = R2_VERSION,
 	.abiversion = R2_ABIVERSION,
 	.pkgname = "r2garlic"
 };
-#endif

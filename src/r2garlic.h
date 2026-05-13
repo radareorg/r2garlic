@@ -12,8 +12,4 @@ typedef struct {
 	size_t file_size;
 } GarlicContext;
 
-bool r2garlic_init(RCorePluginSession *cps);
-bool r2garlic_fini(RCorePluginSession *cps);
-bool r2garlic_call(RCorePluginSession *cps, const char *input);
-
 #endif
