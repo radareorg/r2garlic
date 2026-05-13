@@ -6,10 +6,10 @@
 #include <stdio.h>
 
 typedef struct {
-    FILE *stream;
-    char *buf;
-    size_t len;
-    bool tmpfile_backed;
+	FILE *stream;
+	char *buf;
+	size_t len;
+	bool tmpfile_backed;
 } R2GarlicMemStream;
 
 bool mem_stream_open(R2GarlicMemStream *ms);

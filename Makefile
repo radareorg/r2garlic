@@ -77,6 +77,9 @@ PLUGIN = core_r2garlic.$(R2_LIBEXT)
 
 all: $(PLUGIN)
 
+fmt:
+	clang-format-radare2 src/*.c src/*.h
+
 $(PLUGIN): $(PLUGIN_OBJ) libgarlic.a
 	$(CC) $(LDFLAGS) -o $@ $(PLUGIN_OBJ) -L. -lgarlic
 

@@ -6,10 +6,10 @@
 #define R2GARLIC_VERSION "0.1.0"
 
 typedef struct {
-    RCore *core;
-    char *file_path;
-    ut8 *file_buf;
-    size_t file_size;
+	RCore *core;
+	char *file_path;
+	ut8 *file_buf;
+	size_t file_size;
 } GarlicContext;
 
 bool r2garlic_init(RCorePluginSession *cps);
