@@ -36,10 +36,11 @@ make user-uninstall
 
 ### Commands
 
-| Command | Description                         |
-| ------- | ----------------------------------- |
-| `pd:G`  | Decompile the class at current seek |
-| `pd:Ga` | Decompile all classes               |
-| `pd:Gi` | Show DEX file info (dexdump)        |
-| `pd:Gs` | Output smali for current class      |
-| `pd:G?` | Show help                           |
+| Command | Description                              |
+| ------- | ---------------------------------------- |
+| `pd:G`  | Decompile the method at current seek     |
+| `pd:Gc` | Decompile the full class at current seek |
+| `pd:Ga` | Decompile all classes                    |
+| `pd:Gi` | Show DEX file info (dexdump)             |
+| `pd:Gs` | Output smali for current class           |
+| `pd:G?` | Show help                                |
