@@ -78,6 +78,9 @@ static const char *help_msg[] = {
 	"  pd:Gs           Output smali for current class",
 	"  pd:G?           Show this help",
 	"",
+	"Config:",
+	"  e r2garlic.show_imports=false  Hide imports in pd:G output",
+	"",
 	"Only works on DEX files (format=dex, arch=dalvik).",
 	NULL
 };
@@ -416,19 +419,24 @@ static void cmd_decompile_method(RCore *core, ut8 *file_buf, size_t file_size) {
 	r_cons_printf (core->cons, "/* Decompiled by r2garlic (Garlic) - Class: %s Method: %s */\n", class_name, method_name);
 	R2GarlicMemStream ms;
 	if (mem_stream_open (&ms)) {
-		set_source_file_output_stream (jf, ms.stream);
-		if (jf->pname) {
-			fprintf (ms.stream, "package ");
-			for (size_t i = 0; i < strlen (jf->pname); i++) {
-				unsigned char c = (unsigned char)jf->pname[i];
-				fputc (c == '/'? '.': c, ms.stream);
+		bool show_imports = r_config_get_i (core->config, "r2garlic.show_imports");
+		if (show_imports) {
+			set_source_file_output_stream (jf, ms.stream);
+			if (jf->pname) {
+				fprintf (ms.stream, "package ");
+				for (size_t i = 0; i < strlen (jf->pname); i++) {
+					unsigned char c = (unsigned char)jf->pname[i];
+					fputc (c == '/'? '.': c, ms.stream);
+				}
+				fprintf (ms.stream, ";\n\n");
 			}
-			fprintf (ms.stream, ";\n\n");
+			trie_leaf_to_stream (jf->imports, ms.stream);
+			fprintf (ms.stream, "\n// class: %s\n", jf->fname);
+			fprintf (ms.stream, "%s {\n", jf->defination);
+			set_source_file_output_stream (jf, NULL);
+		} else {
+			fprintf (ms.stream, "// class: %s\n%s {\n", jf->fname, jf->defination);
 		}
-		trie_leaf_to_stream (jf->imports, ms.stream);
-		fprintf (ms.stream, "\n// class: %s\n", jf->fname);
-		fprintf (ms.stream, "%s {\n", jf->defination);
-		set_source_file_output_stream (jf, NULL);
 		char *result = mem_stream_close (&ms);
 		if (result) {
 			r_cons_print (core->cons, result);
@@ -684,6 +692,7 @@ static bool r2garlic_init(RCorePluginSession *cps) {
 	RConfig *cfg = core->config;
 	r_config_lock (cfg, false);
 	r_config_set (cfg, "r2garlic.threads", "1");
+	r_config_set (cfg, "r2garlic.show_imports", "true");
 	r_config_lock (cfg, true);
 	return true;
 }
