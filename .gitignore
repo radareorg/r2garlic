@@ -1,3 +1,10 @@
+# Object files
 *.o
-*.so
+
+# Static libraries
 *.a
+
+# Built plugin/shared library artifacts
+*.so
+*.dylib
+*.dll
