@@ -2,6 +2,8 @@
 
 radare2 plugin for the [Garlic](https://github.com/neocanable/garlic) DEX/Dalvik decompiler.
 
+[![CI](https://github.com/radareorg/r2garlic/actions/workflows/ci.yml/badge.svg)](https://github.com/radareorg/r2garlic/actions/workflows/ci.yml)
+
 ## Build
 
 ```bash
