@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (${{ matrix.build_system }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_system:
+          - make
+          - meson
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install radare2
+        uses: radareorg/github-actions@v2
+
+      - name: Build with Make
+        if: matrix.build_system == 'make'
+        run: make
+
+      - name: Install Meson
+        if: matrix.build_system == 'meson'
+        run: python3 -m pip install meson ninja --break-system-packages
+
+      - name: Build with Meson
+        if: matrix.build_system == 'meson'
+        run: |
+          meson setup build-meson
+          meson compile -C build-meson
