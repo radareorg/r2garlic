@@ -8,3 +8,7 @@
 *.so
 *.dylib
 *.dll
+
+# Meson build directories
+/build/
+/build-meson/

@@ -1,0 +1,6 @@
+option(
+  'r2_plugindir',
+  type: 'string',
+  value: '',
+  description: 'radare2 plugin install directory; when empty, Meson uses `r2 -H R2_USER_PLUGINS` if available',
+)

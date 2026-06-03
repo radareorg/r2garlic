@@ -12,6 +12,13 @@ git submodule update
 make
 ```
 
+### Meson
+
+```bash
+meson setup build-meson
+meson compile -C build-meson
+```
+
 ## Install
 
 ### From r2pm (recommended)
@@ -25,6 +32,14 @@ r2pm -Uci r2garlic
 ```bash
 make user-install
 ```
+
+With Meson:
+
+```bash
+meson install -C build-meson
+```
+
+Pass `-Dr2_plugindir=/path/to/plugins` to `meson setup` to override the radare2 plugin install directory.
 
 ## Uninstall
 
