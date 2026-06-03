@@ -41,6 +41,16 @@ meson install -C build-meson
 
 Pass `-Dr2_plugindir=/path/to/plugins` to `meson setup` to override the radare2 plugin install directory.
 
+### radare2 XPS
+
+The `r2plugin/` directory supports linking r2garlic inside radare2 via `libr/xps`:
+
+```bash
+cd radare2
+make -C libr/xps EXTERNAL_PLUGINS=r2garlic
+make -C libr/core
+```
+
 ## Uninstall
 
 ```bash

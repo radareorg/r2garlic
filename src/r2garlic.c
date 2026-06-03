@@ -711,7 +711,7 @@ static bool r2garlic_fini(RCorePluginSession *cps) {
 	return true;
 }
 
-static RCorePlugin r_core_plugin_r2garlic = {
+RCorePlugin r_core_plugin_r2garlic = {
 	.meta = {
 		.name = "r2garlic",
 		.desc = "Garlic DEX/Dalvik decompiler plugin",
@@ -724,6 +724,7 @@ static RCorePlugin r_core_plugin_r2garlic = {
 	.fini = r2garlic_fini,
 };
 
+#ifndef R2_PLUGIN_INCORE
 R_API RLibStruct radare_plugin = {
 	.type = R_LIB_TYPE_CORE,
 	.data = &r_core_plugin_r2garlic,
@@ -731,3 +732,4 @@ R_API RLibStruct radare_plugin = {
 	.abiversion = R2_ABIVERSION,
 	.pkgname = "r2garlic"
 };
+#endif
