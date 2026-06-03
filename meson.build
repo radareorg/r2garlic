@@ -1,6 +1,5 @@
 project(
-  'r2garlic',
-  'c',
+  'r2garlic', 'c',
   version: '0.1.0',
   license: 'MIT',
   default_options: [
