@@ -73,7 +73,10 @@ PLUGIN_OBJ  = $(PLUGIN_SRC:.c=.o)
 
 PLUGIN = core_r2garlic.$(R2_LIBEXT)
 
-.PHONY: all clean install user-install user-uninstall help
+# Binary package for r2pm -bi: plugins/ for this r2 version and platform
+BINDIST_ZIP = r2garlic-$(shell r2 -qv)-$(shell r2pm -H R2PM_OS)-$(shell r2pm -H R2PM_ARCH)-$(shell r2pm -H R2PM_BITS).zip
+
+.PHONY: all bindist clean install user-install user-uninstall help
 
 all: $(PLUGIN)
 
@@ -115,12 +118,20 @@ user-uninstall:
 	rm -f $(R2_PLUGINS)/core_r2garlic.$(R2_LIBEXT)
 endif
 
+bindist: $(PLUGIN)
+	rm -rf build/bindist $(BINDIST_ZIP)
+	mkdir -p build/bindist/plugins
+	cp -f $(PLUGIN) build/bindist/plugins/
+	cd build/bindist && zip -q -r $(CURDIR)/$(BINDIST_ZIP) plugins
+	rm -rf build/bindist
+
 help:
 	@echo "r2garlic - Garlic DEX/Dalvik decompiler plugin for radare2"
 	@echo ""
 	@echo "Targets:"
 	@echo "  all            Build the plugin (default)"
 	@echo "  clean          Remove build artifacts"
+	@echo "  bindist        Create the r2pm binary package zip (plugins only)"
 	@echo "  user-install   Install plugin to radare2 user plugins directory"
 	@echo "  user-uninstall Remove plugin from radare2 user plugins directory"
 	@echo ""
@@ -133,4 +144,5 @@ help:
 	@echo "Usage:"
 	@echo "  make"
 	@echo "  make user-install"
+	@echo "  make bindist"
 	@echo "  r2 classes.dex -c 'pd:G'"

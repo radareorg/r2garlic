@@ -12,3 +12,6 @@
 # Meson build directories
 /build/
 /build-meson/
+
+# r2pm binary packages
+/r2garlic-*.zip

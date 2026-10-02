@@ -16,6 +16,7 @@ add_project_arguments(
   [
     '-D_GNU_SOURCE',
     '-DGARLIC_NO_MAIN',
+    '-Wno-sign-compare',
   ],
   language: 'c',
 )
@@ -36,7 +37,25 @@ add_project_arguments(
   language: 'c',
 )
 
-r_core_dep = dependency('r_core')
+r2_fallback = find_program('r2', required: false)
+if r2_fallback.found()
+  r2_cflags = run_command(r2_fallback, '-H', 'R2_CFLAGS', check: true).stdout().strip().split()
+  r2_ldflags = run_command(r2_fallback, '-H', 'R2_LDFLAGS', check: true).stdout().strip().split()
+  r2_libs = run_command(r2_fallback, '-H', 'R2_LIBS', check: true).stdout().strip().split()
+  r2_fallback_dep = declare_dependency(
+    compile_args: r2_cflags,
+    link_args: r2_ldflags + r2_libs,
+  )
+else
+  r2_fallback_dep = declare_dependency()
+endif
+
+# Windows release ZIPs are relocatable and are not registered with pkg-config.
+# Fall back to the paths reported by r2 when pkg-config cannot find its SDK.
+r_core_dep = dependency('r_core', required: false)
+if not r_core_dep.found()
+  r_core_dep = r2_fallback_dep
+endif
 threads_dep = dependency('threads')
 
 garlic_src = 'garlic/src'
@@ -237,6 +256,7 @@ shared_library(
     'src/memstream.c',
   ),
   include_directories: garlic_inc,
+  link_args: r2_ldflags,
   dependencies: [
     r_core_dep,
     threads_dep,
