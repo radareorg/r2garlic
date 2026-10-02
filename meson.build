@@ -30,7 +30,7 @@ add_project_arguments(
     '-Wno-implicit-function-declaration',
     '-Wno-incompatible-pointer-types',
     '-Wno-misleading-indentation',
-    '-Wno-format',
+    '-Wno-format-security',
     '-Wno-sign-compare',
     '-Wno-cast-function-type-mismatch',
   ]),

@@ -35,7 +35,8 @@ CFLAGS += -Isrc
 
 CFLAGS += -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter
 CFLAGS += -Wno-unused-but-set-variable -Wno-implicit-function-declaration
-CFLAGS += -Wno-incompatible-pointer-types -Wno-misleading-indentation -Wno-format
+CFLAGS += -Wno-incompatible-pointer-types -Wno-misleading-indentation
+CFLAGS += -Wno-format-security
 
 LDFLAGS = -shared -fPIC $(R2_LDFLAGS) -lpthread
 
