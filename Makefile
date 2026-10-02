@@ -74,7 +74,36 @@ PLUGIN_OBJ  = $(PLUGIN_SRC:.c=.o)
 PLUGIN = core_r2garlic.$(R2_LIBEXT)
 
 # Binary package for r2pm -bi: plugins/ for this r2 version and platform
-BINDIST_ZIP = r2garlic-$(shell r2 -qv)-$(shell r2pm -H R2PM_OS)-$(shell r2pm -H R2PM_ARCH)-$(shell r2pm -H R2PM_BITS).zip
+# R2PM_OS/ARCH/BITS require a recent r2pm; fall back to uname when missing
+R2PM_OS_SH = $(shell r2pm -H R2PM_OS 2>/dev/null)
+R2PM_ARCH_SH = $(shell r2pm -H R2PM_ARCH 2>/dev/null)
+R2PM_BITS_SH = $(shell r2pm -H R2PM_BITS 2>/dev/null)
+ifeq ($(R2PM_OS_SH),)
+R2PM_OS_SH = $(shell uname -s | tr '[:upper:]' '[:lower:]' | sed -e s,darwin,darwin,)
+endif
+ifeq ($(R2PM_ARCH_SH),)
+ifeq ($(shell uname -m),x86_64)
+R2PM_ARCH_SH = x86
+else ifeq ($(shell uname -m),amd64)
+R2PM_ARCH_SH = x86
+else ifeq ($(shell uname -m),aarch64)
+R2PM_ARCH_SH = arm
+else ifeq ($(shell uname -m),arm64)
+R2PM_ARCH_SH = arm
+else
+R2PM_ARCH_SH = $(shell uname -m)
+endif
+endif
+ifeq ($(R2PM_BITS_SH),)
+ifeq ($(R2PM_ARCH_SH),x86)
+R2PM_BITS_SH = 64
+else ifeq ($(R2PM_ARCH_SH),arm)
+R2PM_BITS_SH = 64
+else
+R2PM_BITS_SH = $(shell getconf LONG_BIT 2>/dev/null || echo 64)
+endif
+endif
+BINDIST_ZIP = r2garlic-$(shell r2 -qv)-$(R2PM_OS_SH)-$(R2PM_ARCH_SH)-$(R2PM_BITS_SH).zip
 
 .PHONY: all bindist clean install user-install user-uninstall help
 
