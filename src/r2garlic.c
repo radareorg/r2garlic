@@ -336,7 +336,7 @@ static void cmd_decompile_method(RCore *core, ut8 *file_buf, size_t file_size) {
 		return;
 	}
 	meta->source_dir = NULL;
-	jd_dex *dex = dex_init_without_thread (meta);
+	jd_dex *dex = dex_init_without_thread (meta, NULL, NULL);
 	if (!dex) {
 		mem_pool_free (meta->pool);
 		mem_free_pool ();
@@ -464,17 +464,62 @@ static char *smali_class_to_string(jd_meta_dex *meta, dex_class_def *cf) {
 	return mem_stream_close (&ms);
 }
 
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 static char *dexdump_to_string(jd_meta_dex *meta) {
 	R2GarlicMemStream ms;
 	if (!mem_stream_open (&ms)) {
 		return NULL;
 	}
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	// On Windows, stdout is defined as __acrt_iob_func(1), so it cannot be
+	// assigned to.  Instead, rebind file descriptor 1 to the memory stream's
+	// temporary file, run the dump, and restore the original afterwards.
+	intptr_t saved_fd = _dup (1);
+	if (saved_fd < 0) {
+		mem_stream_discard (&ms);
+		return NULL;
+	}
+	fflush (stdout);
+	_dup2 (_fileno (ms.stream), 1);
+	dexdump (meta);
+	fflush (stdout);
+	_dup2 ((int)saved_fd, 1);
+	_close ((int)saved_fd);
+	// rewind and slurp the temp file now that stdout is disengaged
+	if (fseek (ms.stream, 0, SEEK_END) != 0) {
+		mem_stream_discard (&ms);
+		return NULL;
+	}
+	const long len = ftell (ms.stream);
+	if (len < 0 || fseek (ms.stream, 0, SEEK_SET) != 0) {
+		mem_stream_discard (&ms);
+		return NULL;
+	}
+	char *out = malloc ((size_t)len + 1);
+	if (!out) {
+		mem_stream_discard (&ms);
+		return NULL;
+	}
+	if (len > 0 && fread (out, 1, (size_t)len, ms.stream) != (size_t)len) {
+		free (out);
+		mem_stream_discard (&ms);
+		return NULL;
+	}
+	out[len] = '\0';
+	mem_stream_discard (&ms);
+	return out;
+#else
 	FILE *real_stdout = stdout;
 	stdout = ms.stream;
 	dexdump (meta);
 	fflush (ms.stream);
 	stdout = real_stdout;
 	return mem_stream_close (&ms);
+#endif
 }
 
 static void cmd_decompile_class(RCore *core, ut8 *file_buf, size_t file_size) {
@@ -490,7 +535,7 @@ static void cmd_decompile_class(RCore *core, ut8 *file_buf, size_t file_size) {
 		return;
 	}
 	meta->source_dir = NULL;
-	jd_dex *dex = dex_init_without_thread (meta);
+	jd_dex *dex = dex_init_without_thread (meta, NULL, NULL);
 	if (!dex) {
 		mem_pool_free (meta->pool);
 		mem_free_pool ();
@@ -540,7 +585,7 @@ static void cmd_decompile_all(RCore *core, ut8 *file_buf, size_t file_size) {
 		return;
 	}
 	meta->source_dir = NULL;
-	jd_dex *dex = dex_init_without_thread (meta);
+	jd_dex *dex = dex_init_without_thread (meta, NULL, NULL);
 	if (!dex) {
 		mem_pool_free (meta->pool);
 		mem_free_pool ();
