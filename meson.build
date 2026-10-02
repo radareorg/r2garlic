@@ -58,6 +58,12 @@ if not r_core_dep.found()
 endif
 threads_dep = dependency('threads')
 
+# garlic uses htons/ntohs via winsock2.h on Windows
+ws2_dep = dependency('', required: false)
+if host_machine.system() == 'windows'
+  ws2_dep = declare_dependency(link_args: ['-lws2_32'])
+endif
+
 garlic_src = 'garlic/src'
 
 garlic_inc = include_directories(
@@ -229,7 +235,7 @@ libgarlic = static_library(
   'garlic',
   garlic_sources,
   include_directories: garlic_inc,
-  dependencies: threads_dep,
+  dependencies: [threads_dep, ws2_dep],
   pic: true,
 )
 
@@ -260,6 +266,7 @@ shared_library(
   dependencies: [
     r_core_dep,
     threads_dep,
+    ws2_dep,
   ],
   link_with: libgarlic,
   name_prefix: '',
