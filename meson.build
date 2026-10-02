@@ -1,6 +1,6 @@
 project(
   'r2garlic', 'c',
-  version: '0.1.1',
+  version: '0.1.2',
   license: 'MIT',
   default_options: [
     'c_std=c11',

@@ -3,7 +3,7 @@
 
 #include <r_core.h>
 
-#define R2GARLIC_VERSION "0.1.1"
+#define R2GARLIC_VERSION "0.1.2"
 
 typedef struct {
 	RCore *core;
